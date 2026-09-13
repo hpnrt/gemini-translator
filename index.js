@@ -8,8 +8,15 @@ app.use(cors());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+console.log('Starting server...');
+console.log('API Key loaded:', GEMINI_API_KEY ? 'YES' : 'NO');
+
 app.post('/translate', async (req, res) => {
   try {
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+    }
+
     const { q, target } = req.body;
     
     if (!q) {
@@ -36,7 +43,7 @@ app.post('/translate', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Translation error:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -45,5 +52,11 @@ app.get('/', (req, res) => {
   res.send('Gemini Translator Running');
 });
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', apiKeyLoaded: !!GEMINI_API_KEY });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Running on ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
